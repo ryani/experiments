@@ -1,0 +1,57 @@
+Let E = u*2^32/10^9 - floor(u * floor(2^32*2^29/10^9) / 2^29)
+
+It's clear that E >= 0 since floor(x) <= x
+
+Lemma 1: E < 3
+
+Proof:
+Let e1 be the error introduced by the inner floor operation:
+
+That is,
+e1 = u*(2^32*2^29/10^9) - u*floor(2^32*2^29/10^9)
+   < u*2305843009.2137 - u*2305843009
+         ^ rounded up
+
+Therefore e1 < u * .2137
+
+since u is in the range [0,4294967295],
+0 <= e1 < 917834510.9415 < 917834511
+          ^ again, rounded up
+
+Let e1b = e1 / 2^29.
+0 <= e1b < 1.71 < 2
+                  ^ very rounded up
+
+floor(u * floor(2^32*2^29/10^9) / 2^29)
+= floor(u * (2^32*2^29/10^9 - e1) / 2^29)
+= u * (2^32*2^29/10^9 - e1) / 2^29 - e2
+for some 0 <= e2 < 1
+= u * 2^32*2^29/10^9/2^29 - e1/2^29 - e2
+= u * 2^32/10^9 - (e1b + e2)
+Therefore E = e1b + e2
+
+Since 0 <= e1b < 2 and 0 <= e2 < 1, 0 <= E < 3. QED.
+
+Lemma 2: 
+Let K = 4
+Let t = floor(u * floor(2^32*2^29/10^9) / 2^29) + K
+Then u*2^32/10^9 <= t < (u+1)*2^32/10^9
+
+Proof.  Trivial via Lemma 1 and the fact that
+2^32/10^9 > 4.
+(in fact we could also choose K = 3)
+
+Lemma 3: lgu is correct.
+Proof. (exercise)
+
+Theorem: u32toa_rei is correct.
+Proof:
+1. floor(2^32*2^29/10^9) = 2305843009
+2. n << c == n*2^c
+3. n >> c == floor(n/2^c)
+4. Therefore t is calculated in the range in Lemma 2
+5. Therefore, by Lemma 3 when we enter the switch() the first digit of u is in bits 32-35 of t
+6. Therefore, by Lemma 3, we output the correct number of digits, multiplying by 10 each time.
+7. Therefore by the time the algorithm exits we have multiplied t by a cumulative total of 10^9
+8. Therefore, by (4), we output the correct digits of u.
+QED
